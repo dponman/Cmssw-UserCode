@@ -119,9 +119,8 @@ for syst in ['NOM', 'CH_UP', 'CH_DN', 'TRK_EFF']:
         verbose = 0,
     )
 
-    from SRothman.Analysis.addDeltaPsi import addDeltaPsi
-    process = addDeltaPsi(process, 'ChargedSimonJets'+suffix)
-    process = addDeltaPsi(process, 'GenChargedSimonJets'+suffix)
+    from SRothman.Analysis.addDeltaPsi import addLundDeltaPsi
+    process = addLundDeltaPsi(process, 'ChargedSimonJets'+suffix)
 
 # End of customisation functions
 

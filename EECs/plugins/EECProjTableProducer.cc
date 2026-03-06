@@ -7,6 +7,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
+#include "FWCore/Utilities/interface/Exception.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
@@ -33,6 +34,7 @@ public:
     void produce(edm::Event&, const edm::EventSetup&) override;
 private:
     std::string name_;
+    unsigned maxOrder_;
 
     edm::EDGetTokenT<std::vector<ResultType>> EECToken_;
 };
@@ -40,13 +42,17 @@ private:
 template <class ResultType>
 EECProjTableProducer<ResultType>::EECProjTableProducer(const edm::ParameterSet& conf) :
         name_(conf.getParameter<std::string>("name")),
+        maxOrder_(conf.getParameter<unsigned>("maxOrder")),
         EECToken_(consumes<std::vector<ResultType>>(conf.getParameter<edm::InputTag>("EECs"))) {
 
-    produces<nanoaod::FlatTable>(name_ + "Order2");
-    produces<nanoaod::FlatTable>(name_ + "Order3");
-//    produces<nanoaod::FlatTable>(name_ + "Order4");
-//    produces<nanoaod::FlatTable>(name_ + "Order5");
-//    produces<nanoaod::FlatTable>(name_ + "Order6");
+    if (maxOrder_ < 2) {
+        throw cms::Exception("Configuration")
+            << "Parameter 'maxOrder' must be >= 2, got " << maxOrder_;
+    }
+
+    for (unsigned order = 2; order <= maxOrder_; ++order) {
+        produces<nanoaod::FlatTable>(name_ + "Order" + std::to_string(order));
+    }
     produces<nanoaod::FlatTable>(name_+"BK");
 }
 
@@ -55,6 +61,7 @@ void EECProjTableProducer<ResultType>::fillDescriptions(edm::ConfigurationDescri
     edm::ParameterSetDescription desc;
 
     desc.add<std::string>("name");
+    desc.add<unsigned>("maxOrder");
     desc.add<edm::InputTag>("EECs");
     descriptions.addWithDefaultLabel(desc);
 }
@@ -64,22 +71,31 @@ void EECProjTableProducer<ResultType>::produce(edm::Event& event, const edm::Eve
     edm::Handle<std::vector<ResultType>> EECs;
     event.getByToken(EECToken_, EECs);
 
+    if (!EECs->empty()) {
+        const auto availableMaxOrder = EECs->front().result.get_data().size() + 1;
+        if (maxOrder_ > availableMaxOrder) {
+            throw cms::Exception("Configuration")
+                << "Configured maxOrder=" << maxOrder_
+                << " exceeds available result order " << availableMaxOrder;
+        }
+    }
+
+    const unsigned nOrders = maxOrder_ - 1;
+
     std::vector<int> nR;
-    std::array<std::vector<int>, 2> nEntry;
+    std::vector<std::vector<int>> nEntry(nOrders);
 
     std::vector<int> iJet, iReco;
     std::vector<float> pt_denom;
 
-    const static std::array<std::string, 2> orderNames = {{
-        "Order2", "Order3"
-    }};
-
-    for (unsigned order = 2; order <= 3; ++order){
+    for (unsigned order = 2; order <= maxOrder_; ++order){
+        const unsigned orderIndex = order - 2;
+        const std::string orderName = "Order" + std::to_string(order);
         std::vector<typename ResultType::T> R;
         std::vector<float> wt;
 
         for (const auto& EEC : *EECs){
-            const auto& data = EEC.result.get_data()[order-2];
+            const auto& data = EEC.result.get_data()[orderIndex];
 
             if (order==2){
                 nR.push_back(data.nR);
@@ -99,19 +115,19 @@ void EECProjTableProducer<ResultType>::produce(edm::Event& event, const edm::Eve
                     }
                 }
                 if (entries == 0){
-                    nEntry[order-2].push_back(1);
+                    nEntry[orderIndex].push_back(1);
                     R.push_back(-1);
                     wt.push_back(-1);
                 } else {
-                    nEntry[order-2].push_back(entries);
+                    nEntry[orderIndex].push_back(entries);
                 }
             } else {
                 if (data.get_data().empty()){
-                    nEntry[order-2].push_back(1);
+                    nEntry[orderIndex].push_back(1);
                     R.push_back(-1);  
                     wt.push_back(-1);
                 } else {
-                    nEntry[order-2].push_back(data.get_data().size());
+                    nEntry[orderIndex].push_back(data.get_data().size());
                     for (const auto& [iR, iwt] : data.get_data()){
                         R.push_back(iR);
                         wt.push_back(iwt);
@@ -120,10 +136,10 @@ void EECProjTableProducer<ResultType>::produce(edm::Event& event, const edm::Eve
             }
         }
 
-        auto dataTable = std::make_unique<nanoaod::FlatTable>(R.size(), name_ + orderNames[order-2], false);    
+        auto dataTable = std::make_unique<nanoaod::FlatTable>(R.size(), name_ + orderName, false);
         dataTable->template addColumn<typename ResultType::T>("R", R, "R values", ResultType::COLUMN_TYPE);
         dataTable->template addColumn<float>("wt", wt, "wt values", nanoaod::FlatTable::FloatColumn);
-        event.put(std::move(dataTable), name_+orderNames[order-2]);
+        event.put(std::move(dataTable), name_ + orderName);
     }
 
     auto BKTable = std::make_unique<nanoaod::FlatTable>(nR.size(), name_ + "BK", false);    
@@ -131,8 +147,10 @@ void EECProjTableProducer<ResultType>::produce(edm::Event& event, const edm::Eve
     BKTable->addColumn<int>("iJet", iJet, "iJet", nanoaod::FlatTable::IntColumn);
     BKTable->addColumn<int>("iReco", iReco, "iReco", nanoaod::FlatTable::IntColumn);
     BKTable->addColumn<float>("pt_denom", pt_denom, "pt_denom", nanoaod::FlatTable::FloatColumn);
-    for (unsigned order = 2; order<=3; ++order){
-        BKTable->addColumn<int>("nEntry"+orderNames[order-2], nEntry[order-2], "nEntry", nanoaod::FlatTable::IntColumn);
+    for (unsigned order = 2; order <= maxOrder_; ++order){
+        const unsigned orderIndex = order - 2;
+        const std::string orderName = "Order" + std::to_string(order);
+        BKTable->addColumn<int>("nEntry" + orderName, nEntry[orderIndex], "nEntry", nanoaod::FlatTable::IntColumn);
     }
     event.put(std::move(BKTable), name_ + "BK");
 }

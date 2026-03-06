@@ -103,8 +103,8 @@ process = setupEEC_data(process,
     config = cfg['EECres4'],
     verbose = 0,
 )
-from SRothman.Analysis.addDeltaPsi import addDeltaPsi
-process = addDeltaPsi(process, 'ChargedSimonJets')
+from SRothman.Analysis.addDeltaPsi import addLundDeltaPsi
+process = addLundDeltaPsi(process, 'ChargedSimonJets')
 
 # End of customisation functions
 

@@ -7,6 +7,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSetDescription.h"
 #include "FWCore/ParameterSet/interface/ConfigurationDescriptions.h"
 #include "FWCore/Utilities/interface/EDGetToken.h"
+#include "FWCore/Utilities/interface/Exception.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
@@ -33,6 +34,7 @@ public:
     void produce(edm::Event&, const edm::EventSetup&) override;
 private:
     std::string name_;
+    unsigned maxOrder_;
 
     edm::EDGetTokenT<std::vector<ResultType>> EECTransferToken_;
 };
@@ -40,13 +42,17 @@ private:
 template <class ResultType>
 EECProjTransferTableProducer<ResultType>::EECProjTransferTableProducer(const edm::ParameterSet& conf) :
         name_(conf.getParameter<std::string>("name")),
+        maxOrder_(conf.getParameter<unsigned>("maxOrder")),
         EECTransferToken_(consumes<std::vector<ResultType>>(conf.getParameter<edm::InputTag>("EECTransfer"))) {
 
-    produces<nanoaod::FlatTable>(name_+"Order2");
-    produces<nanoaod::FlatTable>(name_+"Order3");
-    produces<nanoaod::FlatTable>(name_+"Order4");
-    produces<nanoaod::FlatTable>(name_+"Order5");
-    produces<nanoaod::FlatTable>(name_+"Order6");
+    if (maxOrder_ < 2) {
+        throw cms::Exception("Configuration")
+            << "Parameter 'maxOrder' must be >= 2, got " << maxOrder_;
+    }
+
+    for (unsigned order = 2; order <= maxOrder_; ++order) {
+        produces<nanoaod::FlatTable>(name_ + "Order" + std::to_string(order));
+    }
 
     produces<nanoaod::FlatTable>(name_+"BK");
 }
@@ -56,6 +62,7 @@ void EECProjTransferTableProducer<ResultType>::fillDescriptions(edm::Configurati
     edm::ParameterSetDescription desc;
 
     desc.add<std::string>("name");
+    desc.add<unsigned>("maxOrder", 6);
     desc.add<edm::InputTag>("EECTransfer");
     descriptions.addWithDefaultLabel(desc);
 }
@@ -65,25 +72,34 @@ void EECProjTransferTableProducer<ResultType>::produce(edm::Event& event, const 
     edm::Handle<std::vector<ResultType>> EECTransfer_vec;
     event.getByToken(EECTransferToken_, EECTransfer_vec);
 
+    if (!EECTransfer_vec->empty()) {
+        const auto availableMaxOrder = EECTransfer_vec->front().result.get_data().size() + 1;
+        if (maxOrder_ > availableMaxOrder) {
+            throw cms::Exception("Configuration")
+                << "Configured maxOrder=" << maxOrder_
+                << " exceeds available result order " << availableMaxOrder;
+        }
+    }
+
+    const unsigned nOrders = maxOrder_ - 1;
+
     std::vector<int> nR_reco;
     std::vector<int> nR_gen;
 
-    std::array<std::vector<int>, 5> nEntries;
+    std::vector<std::vector<int>> nEntries(nOrders);
 
     std::vector<int> iReco, iGen;
     std::vector<float> pt_denom_reco, pt_denom_gen;
 
-    const static std::array<std::string, 5> orderNames = {{
-        "Order2", "Order3", "Order4", "Order5", "Order6"
-    }};
-
-    for (unsigned order=2; order<=6; ++order){
+    for (unsigned order=2; order<=maxOrder_; ++order){
+        const unsigned orderIndex = order - 2;
+        const std::string orderName = "Order" + std::to_string(order);
         std::vector<typename ResultType::T> transfered_R_reco;
         std::vector<typename ResultType::T> transfered_R_gen;
         std::vector<float> transfered_wt_reco, transfered_wt_gen;
 
         for (const auto& EEC : *EECTransfer_vec){
-            const auto& data = EEC.result.get_data()[order-2];
+            const auto& data = EEC.result.get_data()[orderIndex];
 
             if (order == 2){
                 nR_gen.push_back(data.nR_gen);
@@ -114,17 +130,17 @@ void EECProjTransferTableProducer<ResultType>::produce(edm::Event& event, const 
                     }
                 }
                 if (entries == 0){
-                    nEntries[order-2].push_back(1);
+                    nEntries[orderIndex].push_back(1);
                     transfered_R_reco.push_back(-1);
                     transfered_R_gen.push_back(-1);
                     transfered_wt_reco.push_back(-1);
                     transfered_wt_gen.push_back(-1);
                 } else {
-                    nEntries[order-2].push_back(entries);
+                    nEntries[orderIndex].push_back(entries);
                 }
             } else {
                 if (data_transfered.size() > 0){
-                    nEntries[order-2].push_back(data_transfered.size());
+                    nEntries[orderIndex].push_back(data_transfered.size());
                     for (const auto& entry : data_transfered){
                         transfered_R_reco.push_back(entry.iR_reco);
                         transfered_R_gen.push_back(entry.iR_gen);
@@ -132,7 +148,7 @@ void EECProjTransferTableProducer<ResultType>::produce(edm::Event& event, const 
                         transfered_wt_gen.push_back(entry.wt_gen);
                     }
                 } else {
-                    nEntries[order-2].push_back(1);
+                    nEntries[orderIndex].push_back(1);
                     transfered_R_reco.push_back(-1);
                     transfered_R_gen.push_back(-1);
                     transfered_wt_reco.push_back(-1);
@@ -141,19 +157,21 @@ void EECProjTransferTableProducer<ResultType>::produce(edm::Event& event, const 
             }
         }
 
-        auto dataTransferTable = std::make_unique<nanoaod::FlatTable>(transfered_wt_reco.size(), name_+orderNames[order-2], false);
+        auto dataTransferTable = std::make_unique<nanoaod::FlatTable>(transfered_wt_reco.size(), name_ + orderName, false);
         dataTransferTable->addColumn<typename ResultType::T>("R_reco", transfered_R_reco, "reco R index", ResultType::COLUMN_TYPE);
         dataTransferTable->template addColumn<typename ResultType::T>("R_gen", transfered_R_gen, "gen R index",    ResultType::COLUMN_TYPE);
         dataTransferTable->addColumn<float>("wt_reco", transfered_wt_reco, "weight", nanoaod::FlatTable::FloatColumn);
         dataTransferTable->addColumn<float>("wt_gen", transfered_wt_gen, "weight", nanoaod::FlatTable::FloatColumn);
-        event.put(std::move(dataTransferTable), name_+orderNames[order-2]);
+        event.put(std::move(dataTransferTable), name_ + orderName);
     }
 
     auto BKTable = std::make_unique<nanoaod::FlatTable>(EECTransfer_vec->size(), name_+"BK", false);
     BKTable->template addColumn<int>("nR_reco", nR_reco, "nR reco",          nanoaod::FlatTable::IntColumn);
     BKTable->template addColumn<int>("nR_gen", nR_gen, "nR gen",             nanoaod::FlatTable::IntColumn);
-    for (unsigned order=2; order<=6; ++order){
-        BKTable->template addColumn<int>("nEntries"+orderNames[order-2], nEntries[order-2], "nEntries",       nanoaod::FlatTable::IntColumn);
+    for (unsigned order=2; order<=maxOrder_; ++order){
+        const unsigned orderIndex = order - 2;
+        const std::string orderName = "Order" + std::to_string(order);
+        BKTable->template addColumn<int>("nEntries" + orderName, nEntries[orderIndex], "nEntries", nanoaod::FlatTable::IntColumn);
     }
     BKTable->template addColumn<int>("iReco", iReco, "reco jet index",                            nanoaod::FlatTable::IntColumn);
     BKTable->template addColumn<int>("iGen", iGen, "gen jet index",                               nanoaod::FlatTable::IntColumn);

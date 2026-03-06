@@ -161,6 +161,7 @@
     "EECproj" : {
         "flags" : ["Preselection", "OverlapVeto"],
         "normType" : "RAWPT",
+        "maxOrder" : 3,
         "resultType" : "Unbinned",
         "edges_reco" : {
             "R" : [0.0, 1.0]

@@ -12,9 +12,6 @@ RUNNING_CRAB = True
 #configname = 'config_genonly'
 configname = 'config'
 
-import SRothman.Analysis.config.config
-SRothman.Analysis.config.config.SETUP_CONFIG(configname)
-
 if not RUNNING_CRAB:
     from FWCore.ParameterSet.VarParsing import VarParsing
 
