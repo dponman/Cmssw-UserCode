@@ -31,8 +31,8 @@ GenEventJetProducer = cms.EDProducer("GenEventJetProducer",
     addCHSindex = cms.bool(False),
     CHSmatchDR = cms.double(0.4),
 
-    zSrc = cms.InputTag("GenZDecay", "Z"),
-    zDaughterSrc = cms.InputTag("GenZDecay", "daughters"),
+    zSrc = cms.InputTag("ZMuMu", "Z"),
+    zDaughterSrc = cms.InputTag("ZMuMu", "daughters"),
 
     verbose = cms.int32(1),
 )
