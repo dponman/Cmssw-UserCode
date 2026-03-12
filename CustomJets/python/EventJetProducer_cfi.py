@@ -1,15 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
-from SRothman.CustomJets.systematics import *
-
-_maxNumPart = 4096
-
-from SRothman.Analysis.config.config import config
-
 PatEventJetProducer = cms.EDProducer("PatEventJetProducer",
     selector = cms.PSet(
-        parameters = systematics_parameters,
-        settings = NOM,
+        parameters = cms.PSet(),
+        settings = cms.PSet(),
     ),
 
     jetSrc = cms.InputTag("selectedPatJets"),
@@ -26,8 +20,8 @@ PatEventJetProducer = cms.EDProducer("PatEventJetProducer",
 
 GenEventJetProducer = cms.EDProducer("GenEventJetProducer",
     selector = cms.PSet(
-        parameters = systematics_parameters,
-        settings = NOM,
+        parameters = cms.PSet(),
+        settings = cms.PSet(),
     ),
 
     jetSrc = cms.InputTag("ak4GenJetsNoNu"),

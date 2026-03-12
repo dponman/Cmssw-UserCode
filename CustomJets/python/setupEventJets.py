@@ -1,17 +1,18 @@
 import FWCore.ParameterSet.Config as cms
 from SRothman.CustomJets.SimonJetTableProducer_cfi import *
 from SRothman.CustomJets.EventJetProducer_cfi import *
-
-from SRothman.CustomJets.systematics import variations
+from SRothman.CustomJets.setupSimonJets import selector_from_config
 
 def setupGenEventJets(process,
                       genjets,
-                      name):
+                      name,
+                      config):
 
     setattr(process, 'Gen'+name, GenEventJetProducer.clone(
         jetSrc = genjets,
         addCHSindex = False,
         verbose = False,
+        selector = selector_from_config(config['Systematics'], 'NOM')
     ))
 
     setattr(process, 'Gen'+name+'Table', SimonJetTableProducer.clone(
@@ -32,6 +33,7 @@ def setupRecoEventJets(process,
                        jets,
                        CHSjets,
                        name,
+                       config,
                        syst):
 
     doCHS = len(CHSjets) > 0
@@ -40,10 +42,10 @@ def setupRecoEventJets(process,
         jetSrc = jets,
         CHSsrc = CHSjets,
         addCHSindex = doCHS,
-        CHSmatchDR = 0.4,
+        CHSmatchDR = config['Jets']['CHSmatchDR'],
         verbose = False,
+        selector = selector_from_config(config['Systematics'], syst)
     ))
-    getattr(process, name).selector.settings = variations[syst]
 
     setattr(process, name+"Preselection", cms.EDProducer("JetSelectionFlagTranslator",
         src = cms.InputTag(jets),
@@ -83,23 +85,26 @@ def setupRecoEventJets(process,
 
     return process
 
-def setupEventJets(process, 
-                   jets, 
+def setupEventJets(process,
+                   jets,
                    genjets,
                    CHSjets,
                    name,
+                   config,
                    syst,
                    isMC,
                    genOnly):
     if isMC:
         process = setupGenEventJets(process,
                                     genjets,
-                                    name)
+                                    name,
+                                    config)
     if not genOnly:
         process = setupRecoEventJets(process,
                                      jets,
                                      CHSjets,
                                      name,
+                                     config,
                                      syst)
     return process
 

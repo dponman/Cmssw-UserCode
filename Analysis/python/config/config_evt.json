@@ -1,0 +1,213 @@
+{
+    "EventSelection" : {
+        "maxMuEta" : 2.4,
+        "leadMuPt" : 26,
+        "subMuPt" : 15,
+        "muID" : "CutBasedIdMedium",
+        "muISO" : "PFIsoLoose",
+        "Zmass" : 91.1876,
+        "ZmassWindow" : 20.0,
+        "requireOppositeSignMuons" : true,
+        "onlyCheckLeading" : true,
+        "maxMET" : -1,
+        "muDZ" : 0.5,
+        "muDXY" : 0.2
+    },
+    "Jets" : {
+        "minPt" : 20,
+        "maxEta" : 2.0,
+        "jetID" : "jetIdLepVeto",
+        "minConstituents" : 2,
+        "muonVetoDR" : 0.8,
+        "arbitration" : "None",
+        "CHSmatchDR" : 0.4
+    },
+    "GenJets" : {
+        "minPt" : 10,
+        "maxEta" : 2.5,
+        "maxMuEF" : -1.0,
+        "maxChEmEF" : -1.0,
+        "maxNEmEF" : -1.0,
+        "maxNHadEF" : -1.0,
+        "minConstituents" : 1,
+        "muonVetoDR" : -1,
+        "arbitration" : "None"
+    },
+    "Matching" : {
+        "jet_dR_threshold" : 0.4,
+        "max_chisq" : 999999.0,
+        "Electrons" : {
+            "dr_mode" : "TrackPt",
+            "dr_param1" : 0.01,
+            "dr_param2" : 0.01,
+            "dr_param3" : 0.05,
+            "ptres_mode" : "TrackPt",
+            "ptres_param1" : 0.015,
+            "ptres_param2" : 0.005,
+            "angres_mode" : "TrackAng",
+            "angres_param1" : 0.0003,
+            "angres_param2" : 0.003,
+            "opp_charge_penalty" : 3.0,
+            "no_charge_penalty" : 0.0,
+            "charge_filter_mode" : "Sign",
+            "flavor_filter_mode" : "Any"
+        },
+        "Muons" : {
+            "dr_mode" : "TrackPt",
+            "dr_param1" : 0.01,
+            "dr_param2" : 0.01,
+            "dr_param3" : 0.05,
+            "ptres_mode" : "TrackPt",
+            "ptres_param1" : 0.015,
+            "ptres_param2" : 0.005,
+            "angres_mode" : "TrackAng",
+            "angres_param1" : 0.0003,
+            "angres_param2" : 0.003,
+            "opp_charge_penalty" : 3.0,
+            "no_charge_penalty" : 0.0,
+            "charge_filter_mode" : "Sign",
+            "flavor_filter_mode" : "Any"
+        },
+        "ChargedHadrons" : {
+            "dr_mode" : "TrackPt",
+            "dr_param1" : 0.01,
+            "dr_param2" : 0.01,
+            "dr_param3" : 0.05,
+            "ptres_mode" : "TrackPt",
+            "ptres_param1" : 0.015,
+            "ptres_param2" : 0.005,
+            "angres_mode" : "TrackAng",
+            "angres_param1" : 0.0003,
+            "angres_param2" : 0.003,
+            "opp_charge_penalty" : 3.0,
+            "no_charge_penalty" : 0.0,
+            "charge_filter_mode" : "Sign",
+            "flavor_filter_mode" : "Any"
+        }
+    },
+    "Systematics" : {
+        "parameters" : {
+            "EM0scale" : 0.03,
+            "HAD0scale" : 0.05,
+            "CHscale" : 0.01,
+            "trkDropProb" : 0.03,
+            "trkDropSmear" : 0.10,
+            "EM0thresholds" : [0.0, 0.0, 0.0],
+            "HAD0thresholds" : [0.0, 0.0, 0.0],
+            "ELEthresholds" : [0.0, 0.0, 0.0],
+            "MUthresholds" : [0.0, 0.0, 0.0],
+            "HADCHthresholds" : [0.0, 0.0, 0.0],
+            "minFromPV" : 0,
+            "minPuppiWt" : 0.99,
+            "maxDZ" : 0.2,
+            "maxDXY" : 99999999.9
+        },
+        "nominal" : {
+            "EM0scale" : "NOM",
+            "HAD0scale" : "NOM",
+            "CHscale" : "NOM",
+            "trkDrop" : "OFF",
+            "EM0threshold" : "NOM",
+            "HAD0threshold" : "NOM",
+            "ELEthreshold" : "NOM",
+            "MUthreshold" : "NOM",
+            "HADCHthreshold" : "NOM",
+            "applyPuppiCut" : true,
+            "applyFromPVCut" : false,
+            "applyDZCut" : true,
+            "applyDXYCut" : false,
+            "applyPuppi" : false,
+            "onlyCharged" : true
+        },
+        "variations" : {
+            "EM0_UP" : {
+                "EM0scale" : "UP"
+            },
+            "EM0_DN" : {
+                "EM0scale" : "DN"
+            },
+            "HAD0_UP" : {
+                "HAD0scale" : "UP"
+            },
+            "HAD0_DN" : {
+                "HAD0scale" : "DN"
+            },
+            "CH_UP" : {
+                "CHscale" : "UP"
+            },
+            "CH_DN" : {
+                "CHscale" : "DN"
+            },
+            "TRK_EFF" : {
+                "trkDrop" : "ON"
+            },
+            "YES_PUPPI" : {
+                "applyPuppi" : true
+            },
+            "NO_PUPPICUT" : {
+                "applyPuppiCut" : false
+            },
+            "NO_DZCUT" : {
+                "applyDZCut" : false
+            },
+            "NO_PVCUT" : {
+                "applyFromPVCut" : false,
+                "applyDZCut" : false,
+                "applyDXYCut" : false,
+                "applyPuppiCut" : false
+            }
+        }
+    },
+    "EECproj" : {
+        "flags" : ["Preselection", "OverlapVeto"],
+        "normType" : "RAWPT",
+        "maxOrder" : 3,
+        "resultType" : "Array",
+        "edges_reco" : {
+            "R" : [0.001, 0.001139, 0.001298, 0.001479, 0.001685, 0.00192, 0.002187, 0.002492, 0.002839, 0.003235, 0.003686, 0.004199, 0.004784, 0.005451, 0.00621, 0.007075, 0.008061, 0.009184, 0.010464, 0.011922, 0.013583, 0.015476, 0.017632, 0.020089, 0.022888, 0.026077, 0.02971, 0.03385, 0.038566, 0.04394, 0.050062, 0.057037, 0.064984, 0.074038, 0.084354, 0.096107, 0.109498, 0.124755, 0.142137, 0.161941, 0.184505, 0.210212, 0.239501, 0.272871, 0.310891, 0.354208, 0.40356, 0.459789, 0.523852, 0.596841, 0.68]
+        },
+        "edges_gen" : {
+            "R" : [0.001, 0.001139, 0.001298, 0.001479, 0.001685, 0.00192, 0.002187, 0.002492, 0.002839, 0.003235, 0.003686, 0.004199, 0.004784, 0.005451, 0.00621, 0.007075, 0.008061, 0.009184, 0.010464, 0.011922, 0.013583, 0.015476, 0.017632, 0.020089, 0.022888, 0.026077, 0.02971, 0.03385, 0.038566, 0.04394, 0.050062, 0.057037, 0.064984, 0.074038, 0.084354, 0.096107, 0.109498, 0.124755, 0.142137, 0.161941, 0.184505, 0.210212, 0.239501, 0.272871, 0.310891, 0.354208, 0.40356, 0.459789, 0.523852, 0.596841, 0.68]
+        }
+    },
+    "EECres3" : {
+        "flags" : ["Preselection", "OverlapVeto"],
+        "normType" : "RAWPT",
+        "resultType" : "Unbinned",
+        "edges_reco" : {
+            "R" : [0.0, 1.0],
+            "r" : [0.0, 1.0],
+            "c" : [0.0, 1.0]
+        },
+        "edges_gen" : {
+            "R" : [0.0, 1.0],
+            "r" : [0.0, 1.0],
+            "c" : [0.0, 1.0]
+        }
+    },
+    "EECres4" : {
+        "flags" : ["Preselection", "OverlapVeto"],
+        "normType" : "RAWPT",
+        "resultType" : "Unbinned",
+        "tolerance" : 0.05,
+        "tri_tolerance" : 0.05,
+        "edges_reco" : {
+            "R" : [0.0, 1.0],
+            "r_dipole" : [0.0, 1.0],
+            "c_dipole" : [0.0, 1.0],
+            "r_tee" : [0.0, 1.0],
+            "c_tee" : [0.0, 1.0],
+            "r_triangle" : [0.0, 1.0],
+            "c_triangle" : [0.0, 1.0]
+        },
+        "edges_gen" : {
+            "R" : [0.0, 1.0],
+            "r_dipole" : [0.0, 1.0],
+            "c_dipole" : [0.0, 1.0],
+            "r_tee" : [0.0, 1.0],
+            "c_tee" : [0.0, 1.0],
+            "r_triangle" : [0.0, 1.0],
+            "c_triangle" : [0.0, 1.0]
+        }
+    }
+}

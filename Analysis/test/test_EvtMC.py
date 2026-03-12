@@ -1,7 +1,7 @@
 from SRothman.Analysis.common_cmsRun import *
 
 from SRothman.Analysis.config.config import load_config
-cfg = load_config('config_basic')
+cfg = load_config('config_evt')
 
 # Input source
 if input_fname is None:
@@ -73,9 +73,10 @@ for syst in ['NOM', 'CH_UP', 'CH_DN', 'TRK_EFF']:
     suffix = syst.replace('_', ''); # remove underscores for the suffix
     process = setupEventJets(process,
         jets = 'selectedUpdatedJetsAK8',
-        genjets = 'arbitratedGenJetsAK8', 
+        genjets = 'arbitratedGenJetsAK8',
         CHSjets = 'finalJets',
         name = 'ChargedEventJets'+suffix,
+        config = cfg,
         syst = syst,
         isMC = True,
         genOnly = False
