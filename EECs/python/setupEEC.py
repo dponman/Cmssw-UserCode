@@ -87,7 +87,7 @@ def setupEEC_MC(process,
     )
     process.schedule.associate(getattr(process, '%sGenTask'%name))
 
-    if whichEEC == 'res4':
+    if whichEEC in ('res4', 'proj'):
         # add untransfered tables
         setattr(process, 'UntransferedGen%sTable'%name,
             get_table(config, 'Gen%s'%name, whichEEC, 'untransferedGen')
