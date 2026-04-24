@@ -27,7 +27,7 @@ if not RUNNING_CRAB:
                      VarParsing.varType.string,
                      "Input file list")
     options.register('N',
-                     100,
+                     20,
                      VarParsing.multiplicity.singleton,
                      VarParsing.varType.int,
                      'Number of events to process')
