@@ -44,16 +44,8 @@ public:
 private:
     simon::particleSelector selector_;
 
-    edm::InputTag jetSrc_;
-    edm::EDGetTokenT<edm::View<T>> jetSrcToken_;
-
-    edm::InputTag pfCand_;
-    edm::EDGetTokenT<edm::View<pat::PackedCandidate>> pfCandToken_;
-
-    edm::InputTag CHSsrc_;
-    edm::EDGetTokenT<edm::View<T>> CHSsrcToken_;
-    bool addCHSindex_;
-    double CHSmatchDR_;
+    edm::InputTag Cand_;
+    edm::EDGetTokenT<edm::View<T>> CandToken_;
 
     int verbose_;
 };
@@ -61,14 +53,9 @@ private:
 template <typename T>
 EventJetProducerT<T>::EventJetProducerT(const edm::ParameterSet& conf) :
           selector_(conf.getParameter<edm::ParameterSet>("selector")),
-          jetSrc_(conf.getParameter<edm::InputTag>("jetSrc")),
-          jetSrcToken_(consumes<edm::View<T>>(jetSrc_)),
-	  pfCand_(conf.getParameter<edm::InputTag>("pfCandidates")),
-          pfCandToken_(consumes<edm::View<pat::PackedCandidate>>(pfCand_)),
-          CHSsrc_(conf.getParameter<edm::InputTag>("CHSsrc")),
-          CHSsrcToken_(consumes<edm::View<T>>(CHSsrc_)),
-          addCHSindex_(conf.getParameter<bool>("addCHSindex")),
-          CHSmatchDR_(conf.getParameter<double>("CHSmatchDR")),
+	  Cand_(conf.getParameter<edm::InputTag>("Candidates")),
+          CandToken_(consumes<edm::View<T>>(Cand_)),
+
           verbose_(conf.getParameter<int>("verbose")){
     produces<std::vector<simon::jet>>();
 }
@@ -81,11 +68,7 @@ void EventJetProducerT<T>::fillDescriptions(edm::ConfigurationDescriptions& desc
   simon::particleSelector::fillPSetDescription(selectorDesc);
   desc.add<edm::ParameterSetDescription>("selector", selectorDesc);
 
-  desc.add<edm::InputTag>("jetSrc");
-  desc.add<edm::InputTag>("CHSsrc");
-  desc.add<edm::InputTag>("pfCandidates");
-  desc.add<bool>("addCHSindex");
-  desc.add<double>("CHSmatchDR");
+  desc.add<edm::InputTag>("Candidates");
 
   desc.add<int>("verbose");
 
@@ -98,16 +81,8 @@ void EventJetProducerT<T>::produce(edm::Event& evt,
     if(verbose_){
         printf("top of EventJetProducerT<T>::produce()\n");
     }
-    edm::Handle<edm::View<T>> jets;
-    evt.getByToken(jetSrcToken_, jets);
-
-    edm::Handle<edm::View<pat::PackedCandidate>> candidates;
-    evt.getByToken(pfCandToken_, candidates);
-
-    edm::Handle<edm::View<T>> CHSjets;
-    if(addCHSindex_){
-        evt.getByToken(CHSsrcToken_, CHSjets);
-    }
+    edm::Handle<edm::View<T>> candidates;
+    evt.getByToken(CandToken_, candidates);
 
     std::cout << "EventJetProducer::produce called" << std::endl;    
     auto result = std::make_unique<std::vector<simon::jet>>();
@@ -188,8 +163,8 @@ void EventJetProducerT<T>::produce(edm::Event& evt,
     }
 }  // end produce()
 
-typedef EventJetProducerT<pat::Jet> PatEventJetProducer;
-typedef EventJetProducerT<reco::GenJet> GenEventJetProducer;
+typedef EventJetProducerT<pat::PackedCandidate> PatEventJetProducer;
+typedef EventJetProducerT<pat::PackedGenParticle> GenEventJetProducer;
 
 DEFINE_FWK_MODULE(PatEventJetProducer);
 DEFINE_FWK_MODULE(GenEventJetProducer);

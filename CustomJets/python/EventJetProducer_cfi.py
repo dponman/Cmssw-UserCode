@@ -12,11 +12,7 @@ PatEventJetProducer = cms.EDProducer("PatEventJetProducer",
         settings = NOM,
     ),
 
-    jetSrc = cms.InputTag("selectedPatJets"),
-    pfCandidates = cms.InputTag("packedPFCandidates"),
-    CHSsrc = cms.InputTag(""),
-    addCHSindex = cms.bool(False),
-    CHSmatchDR = cms.double(0.4),
+    Candidates = cms.InputTag("packedPFCandidates"),
 
     verbose = cms.int32(1),
 )
@@ -27,12 +23,7 @@ GenEventJetProducer = cms.EDProducer("GenEventJetProducer",
         settings = NOM,
     ),
 
-    jetSrc = cms.InputTag("ak4GenJetsNoNu"),
-    pfCandidates = cms.InputTag("packedPFCandidates"),
-
-    CHSsrc = cms.InputTag(""),
-    addCHSindex = cms.bool(False),
-    CHSmatchDR = cms.double(0.4),
+    Candidates = cms.InputTag("packedGenParticles"),
 
     verbose = cms.int32(1),
 )
