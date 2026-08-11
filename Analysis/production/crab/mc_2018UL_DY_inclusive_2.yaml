@@ -1,0 +1,13 @@
+defaults:
+  isMC: True
+  splitting: Automatic
+  reco_version: UL
+  year: 2018
+  globaltag: 106X_upgrade2018_realistic_v16_L1v1
+  pset: $CMSSW_BASE/src/SRothman/Analysis/test/production_MC_res4.py
+  allowInvalid: False
+
+samples:
+  DYJetsToLL: 
+    datasets: 
+      Herwig_inclusive_2 : /DYJetsToLL_M-50_TuneCH3_13TeV-madgraphMLM-herwig7/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM

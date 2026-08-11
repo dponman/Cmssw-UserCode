@@ -1,0 +1,14 @@
+defaults:
+  isMC: False
+  splitting: Automatic
+  reco_version: UL
+  year: 2018
+  globaltag: 106X_dataRun2_v37 
+  pset: $CMSSW_BASE/src/SRothman/Analysis/test/production_data_res4.py
+  allowInvalid: False
+  lumimask: https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions18/13TeV/Legacy_2018/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt
+
+samples:
+  SingleMuon: 
+    datasets: 
+      2018C_2 : /SingleMuon/Run2018C-UL2018_MiniAODv2_GT36-v2/MINIAOD

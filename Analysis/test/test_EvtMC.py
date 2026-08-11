@@ -1,5 +1,8 @@
 from SRothman.Analysis.common_cmsRun import *
 
+from SRothman.Analysis.config.config import load_config
+cfg = load_config('config_basic')
+
 # Input source
 if input_fname is None:
     input_fname = '/store/mc/RunIISummer20UL18MiniAODv2/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/120000/015753DA-CD2E-F546-9A7B-9DD451DEA159.root'
@@ -24,8 +27,12 @@ process.endjob_step = cms.EndPath(process.endOfProcess)
 process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
 process.DroppedEventsSimOutput_step = cms.EndPath(process.DroppedEventsSimOutput)
 
+# ABOVE IS STANDARD NANO
+
+# BELOW IS ME :)
+
 from SRothman.Analysis.setupEventSelections_cff import setupEventSelections
-process = setupEventSelections(process, isMC=True)
+process = setupEventSelections(process, "linkedObjects:muons", config=cfg['EventSelection'], isMC=True)
 # Schedule definition
 process.schedule = cms.Schedule(process.selections_path,
                                 process.nanoAOD_step,
@@ -38,35 +45,39 @@ associatePatAlgosToolsTask(process)
 # customisation of the process.
 
 # Automatic addition of the customisation function from PhysicsTools.NanoAOD.nano_cff
-from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC 
+from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC
 
 #call to customisation function nanoAOD_customizeMC imported from PhysicsTools.NanoAOD.nano_cff
 process = nanoAOD_customizeMC(process)
 
-from SRothman.Analysis.addParticlesTable_cff import addParticlesTable
-process = addParticlesTable(process, 
-    "ZMuMu:daughters", 
+from SRothman.Analysis.addParticlesTable_cff import addParticlesTable, addCollectionIndices
+process = addParticlesTable(process,
+    "ZMuMu:daughters",
     "ZMuMuMuons",
     singleton=False)
-process = addParticlesTable(process, 
-    "ZMuMu:Z", 
-    "ZMuMuZ", 
+process = addCollectionIndices(process,
+    "ZMuMu:daughters",
+    "ZMuMuMuons",
+    "linkedObjects:muons"
+)
+process = addParticlesTable(process,
+    "ZMuMu:Z",
+    "ZMuMuZ",
     singleton=True)
 
 from SRothman.Analysis.setupAK8Jets_cff import setupAK8Jets
 process = setupAK8Jets(process,
    isMC = True,
    skipJTB = False,
-   genOnly = False)
+   genOnly = False,
+   config=cfg)
 
 from SRothman.CustomJets.setupEventJets import setupEventJets
 for syst in ['NOM', 'CH_UP', 'CH_DN', 'TRK_EFF']:
     suffix = syst.replace('_', ''); # remove underscores for the suffix
     process = setupEventJets(process,
-        jets = 'selectedUpdatedJetsAK8',
-        genjets = 'arbitratedGenJetsAK8', 
-        CHSjets = 'finalJets',
         name = 'ChargedEventJets'+suffix,
+        config = cfg,
         syst = syst,
         isMC = True,
         genOnly = False
@@ -74,55 +85,21 @@ for syst in ['NOM', 'CH_UP', 'CH_DN', 'TRK_EFF']:
 
     from SRothman.Matching.setupMatching import setupMatching
     process = setupMatching(process,
-        verbose = 0,
         name = 'ChargedGenMatch'+suffix,
         reco = 'ChargedEventJets'+suffix,
         gen = 'GenChargedEventJets'+suffix,
+        config = cfg['Matching']
     )
 
-#   from SRothman.EECs.setupEECRes4 import setupEECRes4_MC
-#   process = setupEECRes4_MC(process,
-#       name = 'ChargedEECs'+suffix,
-#       genMatch = 'ChargedGenMatch'+suffix,
-#       genjets = 'GenChargedSimonJets'+suffix,
-#       recojets = 'ChargedSimonJets'+suffix,
-#       resulttype='Array',
-#       verbose = 0,
-#   )
-
-    from SRothman.EECs.setupEECProj import setupEECProj_MC
-    process = setupEECProj_MC(process,
+    from SRothman.EECs.setupEEC import setupEEC_MC
+    # EventJets don't produce Preselection/OverlapVeto flag collections, unlike SimonJets
+    evtjet_eecproj_cfg = dict(cfg['EECproj'], flags=[])
+    process = setupEEC_MC(process,
         name = 'ChargedEECs'+suffix,
         genMatch = 'ChargedGenMatch'+suffix,
         genjets = 'GenChargedEventJets'+suffix,
         recojets = 'ChargedEventJets'+suffix,
-        flags = [],
-        resulttype='Array',
+        whichEEC='proj',
+        config = evtjet_eecproj_cfg,
         verbose = 0,
     )
-    #from SRothman.EECs.setupEECRes3 import setupEECRes3_MC
-    #process = setupEECRes3_MC(process,
-    #    name = 'ChargedEECs'+suffix,
-    #    genMatch = 'ChargedGenMatch'+suffix,
-    #    genjets = 'GenChargedSimonJets'+suffix,
-    #    recojets = 'ChargedSimonJets'+suffix,
-    #    resulttype='Unbinned',
-    #    verbose = 0,
-    #)
-
-    #from SRothman.EECs.setupEECProj import setupEECProj_MC
-    #process = setupEECProj_MC(process,
-    #    name = 'ChargedEECs'+suffix,
-    #    genMatch = 'ChargedGenMatch'+suffix,
-    #    genjets = 'GenChargedSimonJets'+suffix,
-    #    recojets = 'ChargedSimonJets'+suffix,
-    #    resulttype='Vector',
-    #    verbose = 0,
-    #)
-
-# End of customisation functions
-
-#`process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck",
-#    ignoreTotal = cms.untracked.int32(1)
-#)
-

@@ -1,29 +1,29 @@
 import FWCore.ParameterSet.Config as cms
 
-from SRothman.CustomJets.systematics import *
-
-_maxNumPart = 4096
-
-from SRothman.Analysis.config.config import config
-
 PatEventJetProducer = cms.EDProducer("PatEventJetProducer",
     selector = cms.PSet(
-        parameters = systematics_parameters,
-        settings = NOM,
+        parameters = cms.PSet(),
+        settings = cms.PSet(),
     ),
 
     Candidates = cms.InputTag("packedPFCandidates"),
 
-    verbose = cms.int32(1),
+    zSrc = cms.InputTag("ZMuMu", "Z"),
+    zDaughterSrc = cms.InputTag("ZMuMu", "daughters"),
+
+    verbose = cms.int32(0),
 )
 
 GenEventJetProducer = cms.EDProducer("GenEventJetProducer",
     selector = cms.PSet(
-        parameters = systematics_parameters,
-        settings = NOM,
+        parameters = cms.PSet(),
+        settings = cms.PSet(),
     ),
 
     Candidates = cms.InputTag("packedGenParticles"),
 
-    verbose = cms.int32(1),
+    zSrc = cms.InputTag("ZMuMu", "Z"),
+    zDaughterSrc = cms.InputTag("ZMuMu", "daughters"),
+
+    verbose = cms.int32(0),
 )

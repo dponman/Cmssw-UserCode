@@ -1,0 +1,18 @@
+defaults:
+  isMC: False
+  splitting: FileBased
+  reco_version: UL
+  year: 2018
+  globaltag: 106X_dataRun2_v37 
+  pset: $CMSSW_BASE/src/SRothman/Analysis/test/production_data_res4.py
+  allowInvalid: False
+  lumimask: Lumis_Apr_23_2025/missing.json
+  unitsPerJob: 1
+
+samples:
+  SingleMuon: 
+    datasets: 
+      2018A_missing : /SingleMuon/Run2018A-UL2018_MiniAODv2_GT36-v2/MINIAOD
+      2018B_missing : /SingleMuon/Run2018B-UL2018_MiniAODv2_GT36-v2/MINIAOD
+      2018C_missing : /SingleMuon/Run2018C-UL2018_MiniAODv2_GT36-v2/MINIAOD
+      2018D_missing : /SingleMuon/Run2018D-UL2018_MiniAODv2_GT36-v2/MINIAOD

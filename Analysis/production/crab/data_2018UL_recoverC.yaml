@@ -1,0 +1,15 @@
+defaults:
+  isMC: False
+  splitting: FileBased
+  reco_version: UL
+  year: 2018
+  globaltag: 106X_dataRun2_v37 
+  pset: $CMSSW_BASE/src/SRothman/Analysis/test/production_data_res4.py
+  allowInvalid: False
+  lumimask: crab/srothman_crab_Apr_23_2025/crab_srothman_crab_Apr_23_2025_2018_2018C_recovery/results/notFinishedLumis.json
+  unitsPerJob: 1
+
+samples:
+  SingleMuon: 
+    datasets: 
+      2018C_recovery2 : /SingleMuon/Run2018C-UL2018_MiniAODv2_GT36-v2/MINIAOD

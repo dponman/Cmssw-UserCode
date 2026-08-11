@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 from SRothman.CustomJets.EventJetProducer_cfi import GenEventJetProducer, PatEventJetProducer
-from SRothman.CustomJets.EventJetTableProducer_cfi import EventJetTableProducer
+from SRothman.CustomJets.SimonJetTableProducer_cfi import SimonJetTableProducer
 from SRothman.Analysis.util import pyval_to_cmsval
 
 def syst_params_from_config(config):
@@ -19,14 +19,14 @@ def syst_settings_from_config(config, syst):
     if syst in config['variations']:
         for key, value in config['variations'][syst].items():
             result.__setattr__(key, pyval_to_cmsval(value))
-    
+
         print("Settings for systematic variation %s:" % syst)
         for key in result.parameterNames_():
             print("  %s: %s" % (key, getattr(result, key)))
 
     elif syst != 'NOM':
         raise ValueError("Systematic variation %s not found in config." % syst)
-    
+
     return result
 
 def selector_from_config(config, syst):
@@ -46,7 +46,7 @@ def setupGenEventJets(process,
         selector = selector_from_config(config['Systematics'], 'NOM')
     ))
 
-    setattr(process, 'Gen'+name+'Table', EventJetTableProducer.clone(
+    setattr(process, 'Gen'+name+'Table', SimonJetTableProducer.clone(
         src = 'Gen'+name,
         name = 'Gen'+name,
         verbose=False,
@@ -70,39 +70,21 @@ def setupRecoEventJets(process,
         selector = selector_from_config(config['Systematics'], syst)
     ))
 
-    setattr(process, name+"Preselection", cms.EDProducer("JetSelectionFlagTranslator",
-        target = cms.InputTag(name),
-        verbose = cms.int32(0)
-    ))
-
-    setattr(process, name+"OverlapVeto", cms.EDProducer("JetSelectionFlagTranslator",
-        target = cms.InputTag(name),
-        verbose = cms.int32(0)
-    ))
-
-    setattr(process, name+'Table', EventJetTableProducer.clone(
+    setattr(process, name+'Table', SimonJetTableProducer.clone(
         src = name,
         name = name,
         verbose=False,
     ))
 
-    setattr(process, name+"CHSTable", cms.EDProducer("CHSSumTableProducer",
-        src = cms.InputTag(name),
-        name = cms.string(name+"BK"),
-        verbose = cms.int32(0)
-    ))
-
     setattr(process, name+'Task', cms.Task(
         getattr(process, name),
-        getattr(process, name+'Preselection'),
-        getattr(process, name+'OverlapVeto'),
         getattr(process, name+'Table'),
     ))
     process.schedule.associate(getattr(process, name+'Task'))
 
     return process
 
-def setupEventJets(process, 
+def setupEventJets(process,
                    name,
                    config,
                    syst,
@@ -118,6 +100,3 @@ def setupEventJets(process,
                                      config,
                                      syst)
     return process
-
-
-
