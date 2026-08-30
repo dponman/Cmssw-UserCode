@@ -63,9 +63,9 @@ EventJetProducerT<T>::EventJetProducerT(const edm::ParameterSet& conf) :
           Cand_(conf.getParameter<edm::InputTag>("Candidates")),
           CandToken_(consumes<edm::View<T>>(Cand_)),
           zSrc_(conf.getParameter<edm::InputTag>("zSrc")),
-          zSrcToken_(consumes<edm::View<reco::CompositeCandidate>>(zSrc_)),
+          zSrcToken_(mayConsume<edm::View<reco::CompositeCandidate>>(zSrc_)),
           zDaughterSrc_(conf.getParameter<edm::InputTag>("zDaughterSrc")),
-          zDaughterSrcToken_(consumes<edm::View<reco::LeafCandidate>>(zDaughterSrc_)),
+          zDaughterSrcToken_(mayConsume<edm::View<reco::LeafCandidate>>(zDaughterSrc_)),
           verbose_(conf.getParameter<int>("verbose")){
     produces<std::vector<simon::jet>>();
 }
@@ -106,7 +106,7 @@ void EventJetProducerT<T>::produce(edm::Event& evt,
     simon::jet evt_jet;
 
     float zpt = 1;
-    if (zCands->empty()) {
+    if (!zCands.isValid() || zCands->empty()) {
         if(verbose_){
             printf("No Z candidate in event, setting jet pt to one.\n");
         }
@@ -127,8 +127,10 @@ void EventJetProducerT<T>::produce(edm::Event& evt,
         if (cand.charge() == 0) continue;
         if (cand.pt() < 2) continue;
         bool isMuon = false;
-        for (size_t j = 0; j < zDaughters->size(); ++j) {
-            if (reco::deltaR(cand, zDaughters->at(j)) < 0.01) { isMuon = true; break; }
+        if (zDaughters.isValid()) {
+            for (size_t j = 0; j < zDaughters->size(); ++j) {
+                if (reco::deltaR(cand, zDaughters->at(j)) < 0.01) { isMuon = true; break; }
+            }
         }
         if (isMuon) continue;
         chargedPtrs.emplace_back(candidates->ptrAt(i));

@@ -5,7 +5,8 @@ from SRothman.JetToolbox.jetToolbox_cff import jetToolbox
 def setupAK8GenJets(process,
                     genParticles,
                     partonMode,
-                    config):
+                    config,
+                    zMuMuDaughters='ZMuMu:daughters'):
 
     cutstring = ''
     if config['minPt'] > 0:
@@ -40,7 +41,7 @@ def setupAK8GenJets(process,
     else:
         process.selectedGenJetsAK8 = cms.EDFilter("GENJetOverlapCandidateVetoSelector",
             src = cms.InputTag("cutGenJetsAK8"),
-            vetoer = cms.InputTag("ZMuMu:daughters"),
+            vetoer = cms.InputTag(zMuMuDaughters),
             minDeltaR = cms.double(config['muonVetoDR']),
             filter = cms.bool(False),
             verbose = cms.int32(0),
@@ -130,7 +131,7 @@ def setupAK8GenJets(process,
 
     return process
 
-def setupAK8RecoJets(process, config):
+def setupAK8RecoJets(process, config, zMuMuDaughters='ZMuMu:daughters'):
     process.jetIdLepVetoAK8 = cms.EDProducer("PatJetIDValueMapProducer",
         filterParams = cms.PSet(
             quality = cms.string("TIGHTLEPVETO"),
@@ -175,7 +176,7 @@ def setupAK8RecoJets(process, config):
 
     process.overlapVetoJetsAK8 = cms.EDFilter("PATJetOverlapCandidateVetoSelector",
         src = cms.InputTag("selectedUpdatedJetsAK8"),
-        vetoer = cms.InputTag("ZMuMu:daughters"),
+        vetoer = cms.InputTag(zMuMuDaughters),
         minDeltaR = cms.double(config['muonVetoDR']),
         filter = cms.bool(False),
         makeValueMap = cms.bool(True),
@@ -239,14 +240,16 @@ def setupAK8RecoJets(process, config):
 
     return process
 
-def setupAK8Jets(process, 
+def setupAK8Jets(process,
                  isMC,
                  skipJTB,
                  genOnly,
                  config,
                  genParticles='prunedGenParticles',
-                 partonMode='Auto'):
-    
+                 partonMode='Auto',
+                 genZMuMuDaughters='ZMuMu:daughters',
+                 recoZMuMuDaughters='ZMuMu:daughters'):
+
     if not skipJTB:
         jetToolbox(process, 'ak8', 'dummy', 'noOutput',
                    PUMethod='Puppi', dataTier='miniAOD',
@@ -254,14 +257,16 @@ def setupAK8Jets(process,
                    JETCorrPayload = 'AK8PFPuppi',
                    JETCorrLevels = ['L1FastJet', 'L2Relative', 'L3Absolute'],
                    GetJetMCFlavour = True,
-                   Cut = '', 
+                   Cut = '',
                    runOnMC=isMC)
 
     if isMC:
         setupAK8GenJets(process, genParticles, partonMode,
-                        config=config['GenJets'])
+                        config=config['GenJets'],
+                        zMuMuDaughters=genZMuMuDaughters)
 
     if not genOnly:
-        setupAK8RecoJets(process, config=config['Jets'])
+        setupAK8RecoJets(process, config=config['Jets'],
+                         zMuMuDaughters=recoZMuMuDaughters)
 
     return process

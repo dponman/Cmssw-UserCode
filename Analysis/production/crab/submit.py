@@ -16,7 +16,7 @@ from CRABClient.ClientExceptions import ClientException
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from production_tag import production_tag
 
-requestname_base = getUsername()
+requestname_base = "dponman"
 
 output_site = "T3_CH_CERNBOX"
 output_lfn_base = "/store/user/{username}/crab/{production_tag}".format(

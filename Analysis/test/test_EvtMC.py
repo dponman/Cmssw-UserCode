@@ -31,14 +31,18 @@ process.DroppedEventsSimOutput_step = cms.EndPath(process.DroppedEventsSimOutput
 
 # BELOW IS ME :)
 
-from SRothman.Analysis.setupEventSelections_cff import setupEventSelections
-process = setupEventSelections(process, "linkedObjects:muons", config=cfg['EventSelection'], isMC=True)
+from SRothman.Analysis.setupEventSelections_cff import setupRecoEventSelections, setupGenEventSelections
+process, recoSelPath = setupRecoEventSelections(process, "linkedObjects:muons", isMC=True, config=cfg['EventSelection'])
+process, genSelPath = setupGenEventSelections(process, "prunedGenParticles", config=cfg['EventSelection'])
+
+process.NANOAODSIMoutput.SelectEvents.SelectEvents = cms.vstring(recoSelPath, genSelPath)
+
 # Schedule definition
-process.schedule = cms.Schedule(process.selections_path,
+process.schedule = cms.Schedule(getattr(process, recoSelPath),
+                                getattr(process, genSelPath),
                                 process.nanoAOD_step,
                                 process.endjob_step,
-                                process.NANOAODSIMoutput_step,
-                                process.DroppedEventsSimOutput_step)
+                                process.NANOAODSIMoutput_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
@@ -50,27 +54,17 @@ from PhysicsTools.NanoAOD.nano_cff import nanoAOD_customizeMC
 #call to customisation function nanoAOD_customizeMC imported from PhysicsTools.NanoAOD.nano_cff
 process = nanoAOD_customizeMC(process)
 
-from SRothman.Analysis.addParticlesTable_cff import addParticlesTable, addCollectionIndices
+from SRothman.Analysis.addParticlesTable_cff import addParticlesTable
 process = addParticlesTable(process,
-    "ZMuMu:daughters",
+    "ZMuMureco:daughters",
     "ZMuMuMuons",
-    singleton=False)
-process = addCollectionIndices(process,
-    "ZMuMu:daughters",
-    "ZMuMuMuons",
-    "linkedObjects:muons"
-)
+    singleton=False,
+    skipNonExistingSrc=True)
 process = addParticlesTable(process,
-    "ZMuMu:Z",
+    "ZMuMureco:Z",
     "ZMuMuZ",
-    singleton=True)
-
-from SRothman.Analysis.setupAK8Jets_cff import setupAK8Jets
-process = setupAK8Jets(process,
-   isMC = True,
-   skipJTB = False,
-   genOnly = False,
-   config=cfg)
+    skipNonExistingSrc=True,
+    singleton=False)
 
 from SRothman.CustomJets.setupEventJets import setupEventJets
 for syst in ['NOM', 'CH_UP', 'CH_DN', 'TRK_EFF']:
@@ -80,7 +74,9 @@ for syst in ['NOM', 'CH_UP', 'CH_DN', 'TRK_EFF']:
         config = cfg,
         syst = syst,
         isMC = True,
-        genOnly = False
+        genOnly = False,
+        recoZMuMuLabel = 'ZMuMureco',
+        genZMuMuLabel = 'ZMuMugen',
     )
 
     from SRothman.Matching.setupMatching import setupMatching

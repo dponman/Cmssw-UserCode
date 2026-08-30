@@ -4,16 +4,18 @@ from PhysicsTools.NanoAOD.common_cff import *
 
 def addParticlesTable(process,
                       src,
-                      name, 
-                      singleton=False):
+                      name,
+                      singleton=False,
+                      skipNonExistingSrc=False):
 
     setattr(process, name+"particlesTable", cms.EDProducer("SimpleCandidateFlatTableProducer",
         src = cms.InputTag(src),
         cut = cms.string(""),
         name = cms.string(name),
         doc = cms.string("Basic candidate table"),
-        singleton=cms.bool(singleton), 
+        singleton=cms.bool(singleton),
         extension=cms.bool(False),
+        skipNonExistingSrc=cms.bool(skipNonExistingSrc),
         externalVariables = cms.PSet(),
         variables=cms.PSet(
             pt = Var("pt", float, doc="pt", precision=-1),

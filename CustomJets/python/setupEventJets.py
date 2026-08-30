@@ -39,11 +39,14 @@ def selector_from_config(config, syst):
 
 def setupGenEventJets(process,
                       name,
-                      config):
+                      config,
+                      zMuMuLabel='ZMuMu'):
 
     setattr(process, 'Gen'+name, GenEventJetProducer.clone(
         verbose = False,
-        selector = selector_from_config(config['Systematics'], 'NOM')
+        selector = selector_from_config(config['Systematics'], 'NOM'),
+        zSrc = cms.InputTag(zMuMuLabel, "Z"),
+        zDaughterSrc = cms.InputTag(zMuMuLabel, "daughters"),
     ))
 
     setattr(process, 'Gen'+name+'Table', SimonJetTableProducer.clone(
@@ -63,11 +66,14 @@ def setupGenEventJets(process,
 def setupRecoEventJets(process,
                        name,
                        config,
-                       syst):
+                       syst,
+                       zMuMuLabel='ZMuMu'):
 
     setattr(process, name, PatEventJetProducer.clone(
         verbose = False,
-        selector = selector_from_config(config['Systematics'], syst)
+        selector = selector_from_config(config['Systematics'], syst),
+        zSrc = cms.InputTag(zMuMuLabel, "Z"),
+        zDaughterSrc = cms.InputTag(zMuMuLabel, "daughters"),
     ))
 
     setattr(process, name+'Table', SimonJetTableProducer.clone(
@@ -89,14 +95,18 @@ def setupEventJets(process,
                    config,
                    syst,
                    isMC,
-                   genOnly):
+                   genOnly,
+                   recoZMuMuLabel='ZMuMu',
+                   genZMuMuLabel='ZMuMu'):
     if isMC:
         process = setupGenEventJets(process,
                                     name,
-                                    config)
+                                    config,
+                                    zMuMuLabel=genZMuMuLabel)
     if not genOnly:
         process = setupRecoEventJets(process,
                                      name,
                                      config,
-                                     syst)
+                                     syst,
+                                     zMuMuLabel=recoZMuMuLabel)
     return process
